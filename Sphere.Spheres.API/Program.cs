@@ -9,8 +9,6 @@ var registration = Services.Spheres.GetServiceRegistration();
 
 try
 {
-    var result = await Services.RegisterService(registration);
-
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog(SphericalLogger.ConfigureLogger);
     builder.Services.AddHealthChecks();
@@ -23,6 +21,16 @@ try
     builder.Services.AddSwaggerGen();
 
     var app = builder.Build();
+
+    try
+    {
+        var result = await Services.RegisterService(registration);
+    }
+    catch (Exception e) when (!app.Environment.IsDevelopment())
+    {
+        Log.Fatal(e, "Must be able to register service in non Development environments. Make sure Consul is running.");
+    }
+
     app.MapHealthChecks("/health");
 
     // Configure the HTTP request pipeline.
